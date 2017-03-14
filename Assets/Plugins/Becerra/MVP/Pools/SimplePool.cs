@@ -30,8 +30,6 @@ namespace Becerra.MVP.Pools
 
                 _nodes.Add(node);
             }
-
-            Initialize(prefab as View<T>, initialCount);
         }
 
         public void Initialize(View<T> prefab, int initialCount)
@@ -203,6 +201,9 @@ namespace Becerra.MVP.Pools
         private Node<T> Expand(View<T> prefab)
         {
             var view = GameObject.Instantiate<View<T>>(prefab, PoolParent);
+
+            view.gameObject.SetActive(false);
+            view.transform.SetParent(PoolParent);
 
             Node<T> node;
 
