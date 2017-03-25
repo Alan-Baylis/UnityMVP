@@ -14,6 +14,12 @@ namespace Becerra.MVP.Examples
             var pool = new SimplePool<Animal>();
 
             pool.Initialize(viewPrefab, 2);
+
+            var animal = new Animal();
+
+            animal.Id = "Cat";
+
+            var view = pool.Provide(animal);
         }
     }
 }
