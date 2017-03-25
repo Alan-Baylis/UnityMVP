@@ -7,22 +7,22 @@ namespace Becerra.MVP.Pools
 {
     public class SimplePool<T> : IPool<T> where T: class, IModel
     {
-        class Node<K> where K: class, IModel
+        class Node
         {
             public View<T> view;
             public bool isUsed;
         }
 
-        public Transform PoolParent { get; private set; }
+        public Transform PoolParent { get; set; }
         public IUpdatableView BasePrefab { get { return ViewPrefab; } private set { ViewPrefab = value as View<T>; } }
         public IUpdatableView<T> Prefab { get { return ViewPrefab; } private set { ViewPrefab = value as View<T>; } }
         public View<T> ViewPrefab { get; private set; }
 
-        private IList<Node<T>> _nodes;
+        private IList<Node> _nodes;
 
         public void Initialize(IUpdatableView prefab, int initialCount)
         {
-            _nodes = new List<Node<T>>();
+            _nodes = new List<Node>();
 
             for (int i = 0; i < initialCount; i++)
             {
@@ -30,8 +30,6 @@ namespace Becerra.MVP.Pools
 
                 _nodes.Add(node);
             }
-
-            Initialize(prefab as View<T>, initialCount);
         }
 
         public void Initialize(View<T> prefab, int initialCount)
@@ -40,7 +38,7 @@ namespace Becerra.MVP.Pools
             Initialize(prefab as IUpdatableView, initialCount);
         }
 
-        public View<T> Provide(T model)
+        public virtual View<T> Provide(T model)
         {
             var node = FindAvailableView();
 
@@ -50,6 +48,7 @@ namespace Becerra.MVP.Pools
             }
 
             node.view.Refresh(model);
+            node.view.gameObject.SetActive(true);
             node.isUsed = true;
 
             return node.view;
@@ -125,7 +124,7 @@ namespace Becerra.MVP.Pools
             return true;
         }
 
-        private Node<T> FindAvailableView()
+        private Node FindAvailableView()
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -135,7 +134,7 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
-        private Node<T> FindView(T model)
+        private Node FindView(T model)
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -148,7 +147,7 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
-        private Node<T> FindView(IModel model)
+        private Node FindView(IModel model)
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -161,7 +160,33 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
-        private Node<T> FindView(IUpdatableView view)
+        private Node FindView(IUpdatableView view)
+        {
+            for (int i = 0; i < _nodes.Count; i++)
+            {
+                if (_nodes[i].isUsed)
+                {
+                    if (_nodes[i].view as IUpdatableView == view) return _nodes[i];
+                }
+            }
+
+            return null;
+        }
+
+        private Node FindView(IUpdatableView<T> view)
+        {
+            for (int i = 0; i < _nodes.Count; i++)
+            {
+                if (_nodes[i].isUsed)
+                {
+                    if (_nodes[i].view as IUpdatableView == view) return _nodes[i];
+                }
+            }
+
+            return null;
+        }
+
+        private Node FindView(View<T> view)
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -174,39 +199,16 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
-        private Node<T> FindView(IUpdatableView<T> view)
-        {
-            for (int i = 0; i < _nodes.Count; i++)
-            {
-                if (_nodes[i].isUsed)
-                {
-                    if (_nodes[i].view == view) return _nodes[i];
-                }
-            }
-
-            return null;
-        }
-
-        private Node<T> FindView(View<T> view)
-        {
-            for (int i = 0; i < _nodes.Count; i++)
-            {
-                if (_nodes[i].isUsed)
-                {
-                    if (_nodes[i].view == view) return _nodes[i];
-                }
-            }
-
-            return null;
-        }
-
-        private Node<T> Expand(View<T> prefab)
+        private Node Expand(View<T> prefab)
         {
             var view = GameObject.Instantiate<View<T>>(prefab, PoolParent);
 
-            Node<T> node;
+            view.gameObject.SetActive(false);
+            view.transform.SetParent(PoolParent);
 
-            node = new Node<T>();
+            Node node;
+
+            node = new Node();
             node.view = view;
             node.isUsed = false;
 
