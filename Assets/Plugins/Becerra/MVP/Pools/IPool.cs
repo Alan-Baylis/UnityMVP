@@ -1,5 +1,6 @@
 using Becerra.MVP.Model;
 using Becerra.MVP.Views;
+using System.Collections.Generic;
 
 namespace Becerra.MVP.Pools
 {
@@ -11,9 +12,13 @@ namespace Becerra.MVP.Pools
         IUpdatableView Provide(IModel model);
         bool Free(IUpdatableView view);
         bool Free(IModel model);
+        bool Free(string id);
+        IUpdatableView Find(string id);
+        IUpdatableView Find(IModel model);
+        void Clean();
     }
 
-    public interface IPool<T> : IPool where T: class, IModel
+    public interface IPool<T> : IPool, IEnumerable<View<T>> where T: class, IModel
     {
         IUpdatableView<T> Prefab { get; }
         View<T> ViewPrefab { get; }
@@ -22,5 +27,6 @@ namespace Becerra.MVP.Pools
         View<T> Provide(T model);
         bool Free(IUpdatableView<T> view);
         bool Free(T model);
+        View<T> Find(T model);
     }
 }

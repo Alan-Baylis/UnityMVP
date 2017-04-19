@@ -7,7 +7,7 @@ namespace Becerra.MVP.Views
     {
         public IModel BaseModel { get; private set; }
         public T Model { get; private set; }
-        public GameObject SceneObject { get; protected set; }
+        public GameObject SceneObject { get { return gameObject; } }
 
         public void Refresh(T model)
         {

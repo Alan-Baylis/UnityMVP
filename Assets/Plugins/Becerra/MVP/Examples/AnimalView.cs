@@ -18,7 +18,7 @@ namespace Becerra.MVP.Examples
 
         protected override void RefreshImplementation(Animal model)
         {
-            if (model.Id == "Cat")
+            if (model.Id.Contains("Cat"))
             {
                 spriteRenderer.sprite = catIcon;
             }
