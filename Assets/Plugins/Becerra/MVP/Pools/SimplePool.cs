@@ -5,22 +5,60 @@ using System.Collections.Generic;
 
 namespace Becerra.MVP.Pools
 {
+    /// <summary>
+    /// Basic pool that will have an initial amount of elements and will expand as needed.
+    /// Freed elements will be reused as soon as a new element is required.
+    /// </summary>
     public class SimplePool<T> : IPool<T> where T: class, IModel
     {
+        /// <summary>
+        /// Internal representation of a pool element.
+        /// </summary>
         class Node
         {
             public View<T> view;
             public bool isUsed;
         }
 
+        /// <summary>
+        /// Where the pool elements are instantiated when created or placed when freed.
+        /// </summary>
+        /// <value>The pool parent.</value>
         public Transform PoolParent { get; set; }
+
+        /// <summary>
+        /// Prefab used to create new instances of pool elements.
+        /// </summary>
+        /// <value>The base prefab.</value>
         public IUpdatableView BasePrefab { get { return ViewPrefab; } private set { ViewPrefab = value as View<T>; } }
+
+        /// <summary>
+        /// Prefab used to create new instances of pool elements.
+        /// </summary>
+        /// <value>The prefab.</value>
         public IUpdatableView<T> Prefab { get { return ViewPrefab; } private set { ViewPrefab = value as View<T>; } }
+
+        /// <summary>
+        /// Prefab used to create new instances of pool elements.
+        /// </summary>
+        /// <value>The view prefab.</value>
         public View<T> ViewPrefab { get; private set; }
 
+        /// <summary>
+        /// List of pool elements.
+        /// </summary>
         private IList<Node> _nodes;
+
+        /// <summary>
+        /// Views currently being used.
+        /// </summary>
         private IList<View<T>> _usedViews;
 
+        /// <summary>
+        /// Prepares the pool to be used. This must be called before using any of the other methods.
+        /// </summary>
+        /// <param name="prefab">Prefab.</param>
+        /// <param name="initialCount">Initial count.</param>
         public void Initialize(IUpdatableView prefab, int initialCount)
         {
             _nodes = new List<Node>();
@@ -32,12 +70,22 @@ namespace Becerra.MVP.Pools
             }
         }
 
+        /// <summary>
+        /// Prepares the pool to be used. This must be called before using any of the other methods.
+        /// </summary>
+        /// <param name="prefab">Prefab.</param>
+        /// <param name="initialCount">Initial count.</param>
         public void Initialize(View<T> prefab, int initialCount)
         {
             ViewPrefab = prefab;
             Initialize(prefab as IUpdatableView, initialCount);
         }
 
+        /// <summary>
+        /// Provides a new view representing the data model provided.
+        /// If there is no available view, a new one will be instantiated.
+        /// </summary>
+        /// <param name="model">Model.</param>
         public virtual View<T> Provide(T model)
         {
             var node = FindAvailableView();
@@ -57,11 +105,20 @@ namespace Becerra.MVP.Pools
             return node.view;
         }
 
+        /// <summary>
+        /// Provides a new view representing the data model provided.
+        /// If there is no available view, a new one will be instantiated.
+        /// </summary>
+        /// <param name="model">Model.</param>
         public IUpdatableView Provide(IModel model)
         {
             return Provide(model as T);
         }
 
+        /// <summary>
+        /// Finds a view with an associated model with the same id as the provided one.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
         public IUpdatableView Find(string id)
         {
             for (int i = 0; i < _nodes.Count; i++)
@@ -74,41 +131,73 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
+        /// <summary>
+        /// Finds the view associated with the given model.
+        /// </summary>
+        /// <param name="model">Model.</param>
         public IUpdatableView Find(IModel model)
         {
             return Find(model.Id);
         }
 
+        /// <summary>
+        /// Finds the view associated with the given model.
+        /// </summary>
+        /// <param name="model">Model.</param>
         public View<T> Find(T model)
         {
             return Find(model.Id) as View<T>;
         }
 
+        /// <summary>
+        /// Frees the view associated with the given model.
+        /// </summary>
+        /// <param name="model">Model.</param>
         public bool Free(IModel model)
         {
             return Free(model.Id);
         }
 
+        /// <summary>
+        /// Frees the view associated with the given model.
+        /// </summary>
+        /// <param name="model">Model.</param>
         public bool Free(T model)
         {
             return Free(model.Id);
         }
 
+        /// <summary>
+        /// Frees the view associated with the given model.
+        /// </summary>
+        /// <param name="view">View.</param>
         public bool Free(IUpdatableView view)
         {
             return Free(view.BaseModel.Id);
         }
 
+        /// <summary>
+        /// Frees the view associated with the given model.
+        /// </summary>
+        /// <param name="view">View.</param>
         public bool Free(IUpdatableView<T> view)
         {
             return Free(view.BaseModel.Id);
         }
 
+        /// <summary>
+        /// Frees the view associated with the given model.
+        /// </summary>
+        /// <param name="view">View.</param>
         public bool Free(View<T> view)
         {
             return Free(view.BaseModel.Id);
         }
 
+        /// <summary>
+        /// Frees the view associated with a model with the given id.
+        /// </summary>
+        /// <param name="id">Identifier.</param>
         public bool Free(string id)
         {
             var node = FindNode(id);
@@ -125,6 +214,9 @@ namespace Becerra.MVP.Pools
             return true;
         }
 
+        /// <summary>
+        /// Frees all views and destroys all instances.
+        /// </summary>
         public void Clean()
         {
             for (int i = 0; i < _nodes.Count; i++)
