@@ -26,9 +26,7 @@ namespace Becerra.MVP.Pools
 
             for (int i = 0; i < initialCount; i++)
             {
-                var node = Expand(ViewPrefab);
-
-                _nodes.Add(node);
+                Expand(ViewPrefab);
             }
         }
 
@@ -50,6 +48,7 @@ namespace Becerra.MVP.Pools
             node.view.Refresh(model);
             node.view.gameObject.SetActive(true);
             node.isUsed = true;
+            node.view.name =  model.Id + " [ View for " + typeof(T) + " ]";
 
             return node.view;
         }
@@ -59,69 +58,75 @@ namespace Becerra.MVP.Pools
             return Provide(model as T);
         }
 
+        public IUpdatableView Find(string id)
+        {
+            for (int i = 0; i < _nodes.Count; i++)
+            {
+                if (_nodes[i].isUsed == false) continue;
+
+                if (_nodes[i].view.BaseModel.Id == id) return _nodes[i].view;
+            }
+
+            return null;
+        }
+
+        public IUpdatableView Find(IModel model)
+        {
+            return Find(model.Id);
+        }
+
+        public View<T> Find(T model)
+        {
+            return Find(model.Id) as View<T>;
+        }
+
         public bool Free(IModel model)
         {
-            var node = FindView(model);
-
-            if (node == null) return false;
-
-            node.view.SceneObject.transform.SetParent(PoolParent);
-            node.view.SceneObject.SetActive(false);
-            node.isUsed = false;
-
-            return true;
+            return Free(model.Id);
         }
 
         public bool Free(T model)
         {
-            var node = FindView(model);
-
-            if (node == null) return false;
-
-            node.view.SceneObject.transform.SetParent(PoolParent);
-            node.view.SceneObject.SetActive(false);
-            node.isUsed = false;
-
-            return true;
+            return Free(model.Id);
         }
 
         public bool Free(IUpdatableView view)
         {
-            var node = FindView(view);
-
-            if (node == null) return false;
-
-            node.view.SceneObject.transform.SetParent(PoolParent);
-            node.view.SceneObject.SetActive(false);
-            node.isUsed = false;
-
-            return true;
+            return Free(view.BaseModel.Id);
         }
 
         public bool Free(IUpdatableView<T> view)
         {
-            var node = FindView(view);
-
-            if (node == null) return false;
-
-            node.view.SceneObject.transform.SetParent(PoolParent);
-            node.view.SceneObject.SetActive(false);
-            node.isUsed = false;
-
-            return true;
+            return Free(view.BaseModel.Id);
         }
 
         public bool Free(View<T> view)
         {
-            var node = FindView(view);
+            return Free(view.BaseModel.Id);
+        }
+
+        public bool Free(string id)
+        {
+            var node = FindNode(id);
 
             if (node == null) return false;
 
             node.view.SceneObject.transform.SetParent(PoolParent);
             node.view.SceneObject.SetActive(false);
             node.isUsed = false;
+            node.view.name = "--- [ View for " + typeof(T) + " ]";
 
             return true;
+        }
+
+        public void Clean()
+        {
+            for (int i = 0; i < _nodes.Count; i++)
+            {
+                GameObject.Destroy(_nodes[i].view.SceneObject);
+            }
+
+            _nodes.Clear();
         }
 
         private Node FindAvailableView()
@@ -134,7 +139,7 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
-        private Node FindView(T model)
+        private Node FindNode(T model)
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -147,7 +152,7 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
-        private Node FindView(IModel model)
+        private Node FindNode(IModel model)
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -160,7 +165,7 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
-        private Node FindView(IUpdatableView view)
+        private Node FindNode(IUpdatableView view)
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -173,7 +178,7 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
-        private Node FindView(IUpdatableView<T> view)
+        private Node FindNode(IUpdatableView<T> view)
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -186,7 +191,7 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
-        private Node FindView(View<T> view)
+        private Node FindNode(View<T> view)
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
@@ -194,6 +199,18 @@ namespace Becerra.MVP.Pools
                 {
                     if (_nodes[i].view == view) return _nodes[i];
                 }
+            }
+
+            return null;
+        }
+
+        private Node FindNode(string id)
+        {
+            for (int i = 0; i < _nodes.Count; i++)
+            {
+                if (_nodes[i].isUsed == false) continue;
+
+                if (_nodes[i].view.BaseModel.Id == id) return _nodes[i];
             }
 
             return null;
@@ -211,6 +228,9 @@ namespace Becerra.MVP.Pools
             node = new Node();
             node.view = view;
             node.isUsed = false;
+            node.view.name = "--- [ View for " + typeof(T) + " ]";
+
+            _nodes.Add(node);
 
             return node;
         }

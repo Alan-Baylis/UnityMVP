@@ -11,6 +11,10 @@ namespace Becerra.MVP.Pools
         IUpdatableView Provide(IModel model);
         bool Free(IUpdatableView view);
         bool Free(IModel model);
+        bool Free(string id);
+        IUpdatableView Find(string id);
+        IUpdatableView Find(IModel model);
+        void Clean();
     }
 
     public interface IPool<T> : IPool where T: class, IModel
@@ -22,5 +26,6 @@ namespace Becerra.MVP.Pools
         View<T> Provide(T model);
         bool Free(IUpdatableView<T> view);
         bool Free(T model);
+        View<T> Find(T model);
     }
 }
