@@ -19,10 +19,12 @@ namespace Becerra.MVP.Pools
         public View<T> ViewPrefab { get; private set; }
 
         private IList<Node> _nodes;
+        private IList<View<T>> _usedViews;
 
         public void Initialize(IUpdatableView prefab, int initialCount)
         {
             _nodes = new List<Node>();
+            _usedViews = new List<View<T>>();
 
             for (int i = 0; i < initialCount; i++)
             {
@@ -49,6 +51,8 @@ namespace Becerra.MVP.Pools
             node.view.gameObject.SetActive(true);
             node.isUsed = true;
             node.view.name =  model.Id + " [ View for " + typeof(T) + " ]";
+
+            _usedViews.Add(node.view);
 
             return node.view;
         }
@@ -116,6 +120,8 @@ namespace Becerra.MVP.Pools
             node.isUsed = false;
             node.view.name = "--- [ View for " + typeof(T) + " ]";
 
+            _usedViews.Remove(node.view);
+
             return true;
         }
 
@@ -127,6 +133,7 @@ namespace Becerra.MVP.Pools
             }
 
             _nodes.Clear();
+            _usedViews.Clear();
         }
 
         private Node FindAvailableView()
@@ -234,5 +241,19 @@ namespace Becerra.MVP.Pools
 
             return node;
         }
+
+        #region IEnumerator
+
+        public IEnumerator<View<T>> GetEnumerator()
+        {
+            return _usedViews.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return _usedViews.GetEnumerator();
+        }
+
+        #endregion
     }
 }

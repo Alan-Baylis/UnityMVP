@@ -35,6 +35,13 @@ namespace Becerra.MVP.Examples
             {
                 _pool.Clean();
             }
+            else if (Input.GetKeyDown(KeyCode.E))
+            {
+                foreach (var view in _pool)
+                {
+                    Debug.Log("View " + view + " is used");
+                }
+            }
         }
 
         private void AddCat()

@@ -1,5 +1,6 @@
 using Becerra.MVP.Model;
 using Becerra.MVP.Views;
+using System.Collections.Generic;
 
 namespace Becerra.MVP.Pools
 {
@@ -17,7 +18,7 @@ namespace Becerra.MVP.Pools
         void Clean();
     }
 
-    public interface IPool<T> : IPool where T: class, IModel
+    public interface IPool<T> : IPool, IEnumerable<View<T>> where T: class, IModel
     {
         IUpdatableView<T> Prefab { get; }
         View<T> ViewPrefab { get; }
