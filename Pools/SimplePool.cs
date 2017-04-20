@@ -204,6 +204,7 @@ namespace Becerra.MVP.Pools
 
             if (node == null) return false;
 
+            node.view.Clean();
             node.view.SceneObject.transform.SetParent(PoolParent);
             node.view.SceneObject.SetActive(false);
             node.isUsed = false;
@@ -221,6 +222,7 @@ namespace Becerra.MVP.Pools
         {
             for (int i = 0; i < _nodes.Count; i++)
             {
+                _nodes[i].view.Clean();
                 GameObject.Destroy(_nodes[i].view.SceneObject);
             }
 
