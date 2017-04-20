@@ -1,11 +1,13 @@
 using Becerra.MVP.Model;
 using Becerra.MVP.Views;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Becerra.MVP.Pools
 {
     public interface IPool
     {
+        Transform PoolParent { get; set; }
         IUpdatableView BasePrefab { get; }
 
         void Initialize(IUpdatableView prefab, int initialCount);
