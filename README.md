@@ -121,3 +121,62 @@ public class AnimalController
 6. You can iterate over all **used** views in a pool with `foreach (var view in pool)`. Non used views are ignored during the iteration.
 7. Remember to free views from the pool when you are no longer using them. They will be reused the next time you ask for a view, saving you from evil `Instatite` operations.
 8. When a pool has no more available views to provide, it will instantiate a new one. If you have an estimation on how much views you will need, initialize the pool as `pool.Initialize(prefab, estimatedNumberOfViews)` and that amount of views will be created when initializing the pool.
+
+## Best Friends with Zenject
+
+You can speedup your development even more using UnityMVP in conjunction with the awesome injection framework [Zenject](https://github.com/modesttree/Zenject). I like to inject my global pools and initialize them at the start of my game, wich makes super easy to access them later on to create, update or free game elements in a super easy and fast way.
+
+Example:
+
+Setup the injection.
+
+```c#
+using Zenject;
+
+public class DIPoolsInstaller : MonoInstaller
+{
+    public override void InstallBindings()
+    {
+        Container.Bind<IPool<AnimalView>>().To<SimplePool<AnimalView>().AsSingle();
+    }
+}
+
+```
+
+At the start of the scene, initialize the pools.
+
+```c#
+
+public class InitializePools : MonoBehaviour
+{
+    public Transform animalsContainer;
+    public AnimalView animalPrefab;
+
+    [Inject] IPool<AnimalView> _animalsPool;
+
+    [Inject]
+    private void Initialize()
+    {
+        _animalsPool.Container = animalsContainer;
+        _animalsPool.Initialize(animalPrefab, 10); // 10 initials animals
+    }
+}
+
+```
+
+Somwhere in your code
+
+```c#
+
+public class SomeClass
+{
+    [Inject] IPool<AnimalView> _animalsPool;
+
+    public void Foo()
+    {
+        var cat = new Animal("KeyboardCat");
+        var catView = _animalsPool.Provide(cat);
+    }
+}
+
+```
