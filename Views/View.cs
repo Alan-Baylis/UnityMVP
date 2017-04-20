@@ -11,6 +11,8 @@ namespace Becerra.MVP.Views
 
         public void Refresh(T model)
         {
+            if (model == null) return;
+
             Model = model;
             BaseModel = model;
             RefreshImplementation(model);
