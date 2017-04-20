@@ -3,6 +3,15 @@ UnityMVP
 
 MVP stands for Model-View-Pool, and is shamelessly based on the MVC methodology, but slightly modified for game development, specially with Unity's MonoBehaviours.
 
+## How to install
+
+The Unity project containing this code is not included (nor the folder structure) so you can add it as a submodule of your repo and update through git more easily. `Plugins` folder is a nice candidate, but anyone will do. It's up to you.
+
+1. `git submodule add https://github.com/L4D15/UnityMVP.git Assets/Plugins/UnityMVP`
+2. `git submodule init`
+3. `git submodule update`
+4. Profit.
+
 ## Fundamentals
 
 ### Model 
