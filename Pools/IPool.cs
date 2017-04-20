@@ -7,7 +7,7 @@ namespace Becerra.MVP.Pools
 {
     public interface IPool
     {
-        Transform PoolParent { get; set; }
+        Transform Container { get; set; }
         IUpdatableView BasePrefab { get; }
 
         void Initialize(IUpdatableView prefab, int initialCount);
