@@ -9,6 +9,8 @@ namespace Becerra.MVP.Views
         public T Model { get; private set; }
         public GameObject SceneObject { get { return gameObject; } }
 
+        /// <summary>Updates the visuals of this view to represent the given model</summary>
+        /// <param name="model">model</param>
         public void Refresh(T model)
         {
             if (model == null) return;
@@ -18,11 +20,14 @@ namespace Becerra.MVP.Views
             RefreshImplementation(model);
         }
 
+        /// <summary>Updates the visuals of this view to represent the given model</summary>
+        /// <param name="model">model</param>
         public void Refresh(IModel model)
         {
             Refresh(model as T);
         }
 
+        /// <summary>Resets the state of the view so it can be reused by the pool later on with no problem.</summary>
         public void Clean()
         {
             CleanImplementation();

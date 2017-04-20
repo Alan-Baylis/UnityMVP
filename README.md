@@ -20,7 +20,7 @@ Represents a chunk of data with no logic. A unique identifier is required to dis
 
 Example:
 
-```
+```c#
 public class Animal : IModel
 {
     public string Id { get; }
@@ -38,7 +38,7 @@ Defines how a model (data) is presented to the user through the game engine. It 
 
 Example:
 
-```
+```c#
 public AnimalView : View<Animal>
 {
     public Text nameLabel;
@@ -61,7 +61,7 @@ Manages the usage of views during gameplay using pooling techniques for better p
 
 Example:
 
-```
+```c#
 
 public class FooComponent : MonoBehaviour
 {
@@ -88,7 +88,7 @@ There is nothing specific to automate in the controllers, so there is no need to
 
 Example:
 
-```
+```c#
 
 public class AnimalController
 {
@@ -114,10 +114,69 @@ public class AnimalController
 ## Pro Tips
 
 1. Each model must have a **unique** identifier, otherwise, you may get views of other models when searching or freeing them from the pool.
-2. IModel is an interface so you can inherit you model elements from any other base class.
-3. Views implement the IUpdatableView<T> and IUpdatableView, so they can be refreshed passing a T element or anything that implements the IModel. 
-4. When using the IModel method, if the view does not update, it maybe because the casting from IModel to T failed. Make sure you are passing a model of the right type.
-5. Finding or freeing a view from a pool can be done using the model passed in the template, an IModel or even an id.
+2. `IModel` is an interface so you can inherit you model elements from any other base class.
+3. Views implement the `IUpdatableView<T>` and `IUpdatableView`, so they can be refreshed passing a `T` element or anything that implements the `IModel`. 
+4. When using the `IModel` method, if the view does not update, it maybe because the casting from `IModel` to `T` failed. Make sure you are passing a model of the right type.
+5. Finding or freeing a view from a pool can be done using the model passed in the template, an `IModel` or even an id.
 6. You can iterate over all **used** views in a pool with `foreach (var view in pool)`. Non used views are ignored during the iteration.
 7. Remember to free views from the pool when you are no longer using them. They will be reused the next time you ask for a view, saving you from evil `Instatite` operations.
 8. When a pool has no more available views to provide, it will instantiate a new one. If you have an estimation on how much views you will need, initialize the pool as `pool.Initialize(prefab, estimatedNumberOfViews)` and that amount of views will be created when initializing the pool.
+
+## Best Friends with Zenject
+
+You can speedup your development even more using UnityMVP in conjunction with the awesome injection framework [Zenject](https://github.com/modesttree/Zenject). I like to inject my global pools and initialize them at the start of my game, wich makes super easy to access them later on to create, update or free game elements in a super easy and fast way.
+
+Example:
+
+Setup the injection.
+
+```c#
+using Zenject;
+
+public class DIPoolsInstaller : MonoInstaller
+{
+    public override void InstallBindings()
+    {
+        Container.Bind<IPool<AnimalView>>().To<SimplePool<AnimalView>().AsSingle();
+    }
+}
+
+```
+
+At the start of the scene, initialize the pools.
+
+```c#
+
+public class InitializePools : MonoBehaviour
+{
+    public Transform animalsContainer;
+    public AnimalView animalPrefab;
+
+    [Inject] IPool<AnimalView> _animalsPool;
+
+    [Inject]
+    private void Initialize()
+    {
+        _animalsPool.Container = animalsContainer;
+        _animalsPool.Initialize(animalPrefab, 10); // 10 initials animals
+    }
+}
+
+```
+
+Somwhere in your code
+
+```c#
+
+public class SomeClass
+{
+    [Inject] IPool<AnimalView> _animalsPool;
+
+    public void Foo()
+    {
+        var cat = new Animal("KeyboardCat");
+        var catView = _animalsPool.Provide(cat);
+    }
+}
+
+```
