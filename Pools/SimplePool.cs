@@ -24,7 +24,7 @@ namespace Becerra.MVP.Pools
         /// Where the pool elements are instantiated when created or placed when freed.
         /// </summary>
         /// <value>The pool parent.</value>
-        public Transform PoolParent { get; set; }
+        public Transform Container { get; set; }
 
         /// <summary>
         /// Prefab used to create new instances of pool elements.
@@ -205,7 +205,7 @@ namespace Becerra.MVP.Pools
             if (node == null) return false;
 
             node.view.Clean();
-            node.view.SceneObject.transform.SetParent(PoolParent);
+            node.view.SceneObject.transform.SetParent(Container);
             node.view.SceneObject.SetActive(false);
             node.isUsed = false;
             node.view.name = "--- [ View for " + typeof(T) + " ]";
@@ -319,10 +319,10 @@ namespace Becerra.MVP.Pools
 
         private Node Expand(View<T> prefab)
         {
-            var view = GameObject.Instantiate<View<T>>(prefab, PoolParent);
+            var view = GameObject.Instantiate<View<T>>(prefab, Container);
 
             view.gameObject.SetActive(false);
-            view.transform.SetParent(PoolParent);
+            view.transform.SetParent(Container);
 
             Node node;
 
