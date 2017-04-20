@@ -23,7 +23,14 @@ namespace Becerra.MVP.Views
             Refresh(model as T);
         }
 
-        public abstract void Clean();
+        public void Clean()
+        {
+            CleanImplementation();
+            Model = null;
+            BaseModel = null;
+        }
+
+        protected abstract void CleanImplementation();
         protected abstract void RefreshImplementation(T model);
     }
 }
