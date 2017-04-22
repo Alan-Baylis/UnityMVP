@@ -52,18 +52,13 @@ namespace Becerra.MVP.Pools
         void Clean();
     }
 
-    public interface IPool<T> : IPool, IEnumerable<View<T>> where T: class, IModel
+    public interface IPool<T> : IPool, IEnumerable<IUpdatableView<T>> where T: class, IModel
     {
         /// <summary>Prefab used to instantiate new pool elements.</summary>
         IUpdatableView<T> Prefab { get; }
 
         /// <summary>Prefab used to instantite new pool elements.</summary>
         View<T> ViewPrefab { get; }
-
-        /// <summary>Initializes the pool using the provided prefab and starting with an initial collection of elements.</summary>
-        /// <param name="prefab">prefab</param>
-        /// <param name="initialCount">initialCount</param>
-        void Initialize(View<T> prefab, int initialCount);
 
         /// <summary>Provides a new view representing the model given.</summary>
         /// <param name="model">model</param>
