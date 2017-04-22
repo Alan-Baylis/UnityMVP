@@ -52,7 +52,7 @@ namespace Becerra.MVP.Pools
         /// <summary>
         /// Views currently being used.
         /// </summary>
-        private IList<View<T>> _usedViews;
+        private IList<IUpdatableView<T>> _usedViews;
 
         /// <summary>
         /// Prepares the pool to be used. This must be called before using any of the other methods.
@@ -61,8 +61,17 @@ namespace Becerra.MVP.Pools
         /// <param name="initialCount">Initial count.</param>
         public void Initialize(IUpdatableView prefab, int initialCount)
         {
+            ViewPrefab = prefab as View<T>;
+            Prefab = prefab as IUpdatableView<T>;
+            BasePrefab = prefab;
+
+            if (ViewPrefab == null || Prefab == null || BasePrefab == null)
+            {
+                throw new System.InvalidCastException("View " + prefab + " is not of the required type for pool for type" + typeof(T));
+            }
+
             _nodes = new List<Node>();
-            _usedViews = new List<View<T>>();
+            _usedViews = new List<IUpdatableView<T>>();
 
             for (int i = 0; i < initialCount; i++)
             {
@@ -78,7 +87,18 @@ namespace Becerra.MVP.Pools
         public void Initialize(View<T> prefab, int initialCount)
         {
             ViewPrefab = prefab;
-            Initialize(prefab as IUpdatableView, initialCount);
+            Initialize(prefab as IUpdatableView<T>, initialCount);
+        }
+
+        /// <summary>
+        /// Prepares the pool to be used. This must be called before using any of the other methods.
+        /// </summary>
+        /// <param name="prefab">prefab</param>
+        /// <param name="initialCount">initialCount</param>
+        public void Initialize(IUpdatableView<T> prefab, int initialCount)
+        {
+            Prefab = prefab;
+            Initialize(prefab, initialCount);
         }
 
         /// <summary>
@@ -338,7 +358,7 @@ namespace Becerra.MVP.Pools
 
         #region IEnumerator
 
-        public IEnumerator<View<T>> GetEnumerator()
+        public IEnumerator<IUpdatableView<T>> GetEnumerator()
         {
             return _usedViews.GetEnumerator();
         }
