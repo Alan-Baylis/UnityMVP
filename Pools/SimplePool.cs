@@ -4,6 +4,10 @@ using UnityEngine;
 
 namespace Becerra.MVP.Pools
 {
+    /// <summary>
+    /// Pool for any kind of MonoBehaviour.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     public class SimplePool<T> : IPool<T> where T: MonoBehaviour
     {
         /// <summary>
@@ -15,12 +19,21 @@ namespace Becerra.MVP.Pools
             public bool IsUsed;
         }
         
+        /// <inheritdoc />
         public Transform Container { get; set; }
+        
+        /// <inheritdoc />
         public T Prefab { get; private set; }
         
         protected IList<Node> Nodes { get; private set; }
         private readonly IList<T> _usedElements;
 
+        /// <summary>
+        /// Default constructor. Creates the initial elements specified.
+        /// </summary>
+        /// <param name="prefab">Prefab used to create elements in the pool.</param>
+        /// <param name="initialCount">Initial number of elements in the pool.</param>
+        /// <param name="container">Where the pooled elements will be contained.</param>
         public SimplePool(T prefab, int initialCount, Transform container)
         {
             Prefab = prefab;
@@ -37,6 +50,9 @@ namespace Becerra.MVP.Pools
             }
         }
 
+        /// <summary>
+        /// Gets rid of the pool and its elements.
+        /// </summary>
         public virtual void Dispose()
         {
             foreach (var node in Nodes)
@@ -48,7 +64,7 @@ namespace Becerra.MVP.Pools
             _usedElements.Clear();
         }
 
-
+        /// <inheritdoc />
         public T Provide()
         {
             var node = FindFirstNodeAvailable();
@@ -69,6 +85,7 @@ namespace Becerra.MVP.Pools
             return node.SceneObject;
         }
 
+        /// <inheritdoc />
         public bool Free(T sceneObject)
         {
             var node = FindNode(sceneObject);
@@ -85,6 +102,12 @@ namespace Becerra.MVP.Pools
             return true;
         }
 
+        /// <summary>
+        /// Creates a new pool node containing info about a new pooled element.
+        /// </summary>
+        /// <param name="prefab">Prefab used to create the pooled element.</param>
+        /// <param name="container">Where the pooled element is stored.</param>
+        /// <returns>New node with info about the new pooled element.</returns>
         protected virtual Node CreateNode(T prefab, Transform container)
         {
             var obj = GameObject.Instantiate(prefab, container);
@@ -104,6 +127,10 @@ namespace Becerra.MVP.Pools
             return node;
         }
 
+        /// <summary>
+        /// Searchs for the first node with an available element.
+        /// </summary>
+        /// <returns></returns>
         protected Node FindFirstNodeAvailable()
         {
             foreach (var node in Nodes)
@@ -114,6 +141,11 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
+        /// <summary>
+        /// Searchs for a node in the pool associated with the object given.
+        /// </summary>
+        /// <param name="sceneObject"></param>
+        /// <returns></returns>
         protected Node FindNode(T sceneObject)
         {
             foreach (var node in Nodes)
