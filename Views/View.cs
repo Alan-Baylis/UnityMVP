@@ -23,7 +23,7 @@ namespace Becerra.MVP.Views
         /// <summary>
         /// Pool that spawned this view.
         /// </summary>
-        public IPool<View<T>> SourcePool { get; set; }
+        public IViewDisposer ViewDisposer { get; set; }
         
         /// <summary>
         /// Scene object used to visuallize the data in the world.
@@ -72,9 +72,9 @@ namespace Becerra.MVP.Views
         /// </summary>
         public void Dispose()
         {
-            if (SourcePool == null) return;
+            if (ViewDisposer == null) return;
 
-            SourcePool.Free(this);
+            ViewDisposer.Dispose(this);
         }
     }
 }

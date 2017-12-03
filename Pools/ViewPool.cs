@@ -28,44 +28,44 @@ namespace Becerra.MVP.Pools
         }
 
         /// <inheritdoc />
-        public View<T> Provide(T model)
+        public TR Provide(T model)
         {
             var obj = Provide();
 
-            var view = obj.GetComponent<View<T>>();
+            var view = obj.GetComponent<TR>();
 
-            view.SourcePool = this as IPool<View<T>>;
+            view.ViewDisposer = this;
             view.Refresh(model);
             
             return view;
         }
 
         /// <inheritdoc />
-        public bool Free(IUpdatableView<T> view)
+        public bool Dispose(IUpdatableView<T> view)
         {
-            return base.Free(view as TR);
+            return base.Dispose(view as TR);
         }
 
         /// <inheritdoc />
-        public bool Free(T model)
+        public bool Dispose(T model)
         {
-            return Free(model.Id);
+            return Dispose(model.Id);
         }
 
         /// <inheritdoc />
-        public bool Free(IUpdatableView view)
+        public bool Dispose(IUpdatableView view)
         {
-            return Free(view as TR);
+            return Dispose(view as TR);
         }
 
         /// <inheritdoc />
-        public bool Free(IModel model)
+        public bool Dispose(IModel model)
         {
-            return Free(model as T);
+            return Dispose(model as T);
         }
 
         /// <inheritdoc />
-        public bool Free(string id)
+        public bool Dispose(string id)
         {
             var view = Find(id);
 
@@ -73,7 +73,7 @@ namespace Becerra.MVP.Pools
 
             view.Clean();
             
-            return base.Free(view as TR);
+            return base.Dispose(view as TR);
         }
 
         /// <inheritdoc />
@@ -94,9 +94,9 @@ namespace Becerra.MVP.Pools
         }
 
         /// <inheritdoc />
-        public View<T> Find(T model)
+        public TR Find(T model)
         {
-            return Find(model.Id) as View<T>;
+            return Find(model.Id) as TR;
         }
 
         public override void Dispose()

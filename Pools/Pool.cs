@@ -86,7 +86,7 @@ namespace Becerra.MVP.Pools
         }
 
         /// <inheritdoc />
-        public bool Free(T sceneObject)
+        public bool Dispose(T sceneObject)
         {
             var node = FindNode(sceneObject);
 

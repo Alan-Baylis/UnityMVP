@@ -31,7 +31,7 @@ namespace Becerra.MVP.Pools
         /// </summary>
         /// <param name="sceneObject"></param>
         /// <returns></returns>
-        bool Free(T sceneObject);
+        bool Dispose(T sceneObject);
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ namespace Becerra.MVP.Pools
     /// </summary>
     /// <typeparam name="T">Model</typeparam>
     /// <typeparam name="TR">View type used to represent the model.</typeparam>
-    public interface IViewPool<T, TR> : IEnumerable<TR> where T: class, IModel where TR: IUpdatableView<T>
+    public interface IViewPool<T, TR> : IEnumerable<TR>, IViewDisposer, IViewDisposer<T, TR> where T: class, IModel where TR: IUpdatableView<T>
     {
         /// <summary>Prefab used to instantiate new pool elements.</summary>
         IUpdatableView BaseViewPrefab { get; }
@@ -55,32 +55,7 @@ namespace Becerra.MVP.Pools
         /// <summary>Provides a new view representing the model given.</summary>
         /// <param name="model">model</param>
         /// <returns>View<T></returns>
-        View<T> Provide(T model);
-
-        /// <summary>Frees the view given.</summary>
-        /// <param name="view">view</param>
-        /// <returns>bool</returns>
-        bool Free(IUpdatableView<T> view);
-
-        /// <summary>Frees a used view associated with the given model</summary>
-        /// <param name="model">model</param>
-        /// <returns>bool</returns>
-        bool Free(T model);
-        
-        /// <summary>Frees the given view.</summary>
-        /// <param name="view">view</param>
-        /// <returns>bool</returns>
-        bool Free(IUpdatableView view);
-
-        /// <summary>Frees the view associated with the given model.</summary>
-        /// <param name="model">model</param>
-        /// <returns>bool</returns>
-        bool Free(IModel model);
-
-        /// <summary>Frees the view associated with a model with the same id.</summary>
-        /// <param name="id">id</param>
-        /// <returns>bool</returns>
-        bool Free(string id);
+        TR Provide(T model);
 
         /// <summary>Finds a used view associated with a model with the given id.</summary>
         /// <param name="id">id</param>
@@ -95,6 +70,37 @@ namespace Becerra.MVP.Pools
         /// <summary>Find a used view associated with the given model.</summary>
         /// <param name="model">model</param>
         /// <returns>View<T></returns>
-        View<T> Find(T model);
+        TR Find(T model);
+    }
+
+    public interface IViewDisposer
+    {
+        /// <summary>Frees the view associated with a model with the same id.</summary>
+        /// <param name="id">id</param>
+        /// <returns>bool</returns>
+        bool Dispose(string id);
+        
+        /// <summary>Frees the given view.</summary>
+        /// <param name="view">view</param>
+        /// <returns>bool</returns>
+        bool Dispose(IUpdatableView view);
+
+        /// <summary>Frees the view associated with the given model.</summary>
+        /// <param name="model">model</param>
+        /// <returns>bool</returns>
+        bool Dispose(IModel model);
+    }
+
+    public interface IViewDisposer<T, TR> where T : class, IModel where TR : IUpdatableView<T>
+    {
+        /// <summary>Frees the view given.</summary>
+        /// <param name="view">view</param>
+        /// <returns>bool</returns>
+        bool Dispose(TR view);
+
+        /// <summary>Frees a used view associated with the given model</summary>
+        /// <param name="model">model</param>
+        /// <returns>bool</returns>
+        bool Dispose(T model);
     }
 }
