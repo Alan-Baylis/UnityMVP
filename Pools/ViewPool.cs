@@ -70,6 +70,8 @@ namespace Becerra.MVP.Pools
 
             if (view == null) return false;
 
+            view.Clean();
+            
             return base.Free(view as TR);
         }
 
@@ -94,6 +96,16 @@ namespace Becerra.MVP.Pools
         public View<T> Find(T model)
         {
             return Find(model.Id) as View<T>;
+        }
+
+        public override void Dispose()
+        {
+            foreach (var view in UsedElements)
+            {
+                view.Clean();
+            }
+            
+            base.Dispose();
         }
     }
 }

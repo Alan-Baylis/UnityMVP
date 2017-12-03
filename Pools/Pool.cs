@@ -26,7 +26,7 @@ namespace Becerra.MVP.Pools
         public T Prefab { get; private set; }
         
         protected IList<Node> Nodes { get; private set; }
-        private readonly IList<T> _usedElements;
+        protected readonly IList<T> UsedElements;
 
         /// <summary>
         /// Default constructor. Creates the initial elements specified.
@@ -40,7 +40,7 @@ namespace Becerra.MVP.Pools
             Container = container;
             
             Nodes = new List<Node>(initialCount);
-            _usedElements = new List<T>();
+            UsedElements = new List<T>();
 
             for (int i = 0; i < initialCount; i++)
             {
@@ -61,7 +61,7 @@ namespace Becerra.MVP.Pools
             }
             
             Nodes.Clear();
-            _usedElements.Clear();
+            UsedElements.Clear();
         }
 
         /// <inheritdoc />
@@ -80,7 +80,7 @@ namespace Becerra.MVP.Pools
 
             node.IsUsed = true;
             
-            _usedElements.Add(node.SceneObject);
+            UsedElements.Add(node.SceneObject);
             
             return node.SceneObject;
         }
@@ -97,7 +97,7 @@ namespace Becerra.MVP.Pools
             node.SceneObject.gameObject.SetActive(false);
             node.IsUsed = false;
             
-            _usedElements.Remove(sceneObject);
+            UsedElements.Remove(sceneObject);
 
             return true;
         }
@@ -160,7 +160,7 @@ namespace Becerra.MVP.Pools
         
         public IEnumerator<T> GetEnumerator()
         {
-            return _usedElements.GetEnumerator();
+            return UsedElements.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
