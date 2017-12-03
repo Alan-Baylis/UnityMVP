@@ -33,7 +33,8 @@ namespace Becerra.MVP.Pools
             var obj = Provide();
 
             var view = obj.GetComponent<View<T>>();
-            
+
+            view.SourcePool = this as IPool<View<T>>;
             view.Refresh(model);
             
             return view;

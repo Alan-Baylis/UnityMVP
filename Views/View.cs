@@ -23,7 +23,7 @@ namespace Becerra.MVP.Views
         /// <summary>
         /// Pool that spawned this view.
         /// </summary>
-        public IViewPool<T, IUpdatableView<T>> SourcePool { get; set; }
+        public IPool<View<T>> SourcePool { get; set; }
         
         /// <summary>
         /// Scene object used to visuallize the data in the world.

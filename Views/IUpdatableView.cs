@@ -49,7 +49,7 @@ namespace Becerra.MVP.Views
         /// <summary>
         /// Pool that spawned this view.
         /// </summary>
-        IViewPool<T, IUpdatableView<T>> SourcePool { get; set; }
+        IPool<View<T>> SourcePool { get; set; }
         
         /// <summary>
         /// Refreshes the view to represent the model given.
