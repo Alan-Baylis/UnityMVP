@@ -8,7 +8,7 @@ namespace Becerra.MVP.Pools
     /// Pool for any kind of MonoBehaviour.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class SimplePool<T> : IPool<T> where T: MonoBehaviour
+    public class Pool<T> : IPool<T> where T: MonoBehaviour
     {
         /// <summary>
         /// Internal representation of a pool element.
@@ -34,7 +34,7 @@ namespace Becerra.MVP.Pools
         /// <param name="prefab">Prefab used to create elements in the pool.</param>
         /// <param name="initialCount">Initial number of elements in the pool.</param>
         /// <param name="container">Where the pooled elements will be contained.</param>
-        public SimplePool(T prefab, int initialCount, Transform container)
+        public Pool(T prefab, int initialCount, Transform container)
         {
             Prefab = prefab;
             Container = container;
