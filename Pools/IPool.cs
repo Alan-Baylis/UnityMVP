@@ -1,3 +1,4 @@
+using System;
 using Becerra.MVP.Model;
 using Becerra.MVP.Views;
 using System.Collections.Generic;
@@ -5,7 +6,7 @@ using UnityEngine;
 
 namespace Becerra.MVP.Pools
 {
-    public interface IPool
+    public interface IPool : IDisposable
     {
         /// <summary>Parent for pooled elements. Must be set before calling Initialize.</summary>
         Transform Container { get; set; }

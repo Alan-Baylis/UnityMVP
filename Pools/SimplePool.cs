@@ -14,10 +14,10 @@ namespace Becerra.MVP.Pools
         /// <summary>
         /// Internal representation of a pool element.
         /// </summary>
-        class Node
+        protected class Node
         {
-            public View<T> view;
-            public bool isUsed;
+            public View<T> View;
+            public bool IsUsed;
         }
 
         /// <summary>
@@ -45,14 +45,15 @@ namespace Becerra.MVP.Pools
         public View<T> ViewPrefab { get; private set; }
 
         /// <summary>
-        /// List of pool elements.
+        /// List of pool elements available and used.
         /// </summary>
-        private IList<Node> _nodes;
+        protected IList<Node> Nodes;
 
         /// <summary>
         /// Views currently being used.
+        /// This is a helper list for easier iteration over the pool.
         /// </summary>
-        private IList<IUpdatableView<T>> _usedViews;
+        protected IList<IUpdatableView<T>> UsedViews;
 
         /// <summary>
         /// Prepares the pool to be used. This must be called before using any of the other methods.
@@ -70,8 +71,8 @@ namespace Becerra.MVP.Pools
                 throw new System.InvalidCastException("View " + prefab + " is not of the required type for pool for type" + typeof(T));
             }
 
-            _nodes = new List<Node>();
-            _usedViews = new List<IUpdatableView<T>>();
+            Nodes = new List<Node>();
+            UsedViews = new List<IUpdatableView<T>>();
 
             for (int i = 0; i < initialCount; i++)
             {
@@ -84,8 +85,10 @@ namespace Becerra.MVP.Pools
         /// </summary>
         /// <param name="prefab">Prefab.</param>
         /// <param name="initialCount">Initial count.</param>
-        public void Initialize(View<T> prefab, int initialCount)
+        /// <param name="container">Object in the scene that will holde the pooled objects.</param>
+        public void Initialize(View<T> prefab, int initialCount, Transform container = null)
         {
+            Container = container;
             ViewPrefab = prefab;
             Initialize(prefab as IUpdatableView<T>, initialCount);
         }
@@ -95,10 +98,22 @@ namespace Becerra.MVP.Pools
         /// </summary>
         /// <param name="prefab">prefab</param>
         /// <param name="initialCount">initialCount</param>
-        public void Initialize(IUpdatableView<T> prefab, int initialCount)
+        /// <param name="container"></param>
+        public void Initialize(IUpdatableView<T> prefab, int initialCount, Transform container = null)
         {
+            Container = container;
             Prefab = prefab;
             Initialize(prefab, initialCount);
+        }
+        
+        /// <summary>
+        /// How to dispose the pool.
+        /// This will free al views (cleaning them first) and the empty all collections.
+        /// Views are cleaned to ensure there is nothing left behind (like delegates subscriptions etc).
+        /// </summary>
+        public void Dispose()
+        {
+            Clean();
         }
 
         /// <summary>
@@ -115,14 +130,14 @@ namespace Becerra.MVP.Pools
                 node = Expand(ViewPrefab);
             }
 
-            node.view.Refresh(model);
-            node.view.gameObject.SetActive(true);
-            node.isUsed = true;
-            node.view.name =  model.Id + " [ View for " + typeof(T) + " ]";
+            node.View.Refresh(model);
+            node.View.gameObject.SetActive(true);
+            node.IsUsed = true;
+            node.View.name =  model.Id + " [ View for " + typeof(T) + " ]";
 
-            _usedViews.Add(node.view);
+            UsedViews.Add(node.View);
 
-            return node.view;
+            return node.View;
         }
 
         /// <summary>
@@ -141,11 +156,11 @@ namespace Becerra.MVP.Pools
         /// <param name="id">Identifier.</param>
         public IUpdatableView Find(string id)
         {
-            for (int i = 0; i < _nodes.Count; i++)
+            foreach (var node in Nodes)
             {
-                if (_nodes[i].isUsed == false) continue;
+                if (node.IsUsed == false) continue;
 
-                if (_nodes[i].view.BaseModel.Id == id) return _nodes[i].view;
+                if (node.View.BaseModel.Id == id) return node.View;
             }
 
             return null;
@@ -218,19 +233,19 @@ namespace Becerra.MVP.Pools
         /// Frees the view associated with a model with the given id.
         /// </summary>
         /// <param name="id">Identifier.</param>
-        public bool Free(string id)
+        public virtual bool Free(string id)
         {
             var node = FindNode(id);
 
             if (node == null) return false;
 
-            node.view.Clean();
-            node.view.SceneObject.transform.SetParent(Container);
-            node.view.SceneObject.SetActive(false);
-            node.isUsed = false;
-            node.view.name = "--- [ View for " + typeof(T) + " ]";
+            node.View.Clean();
+            node.View.SceneObject.transform.SetParent(Container);
+            node.View.SceneObject.SetActive(false);
+            node.IsUsed = false;
+            node.View.name = "--- [ View for " + typeof(T) + " ]";
 
-            _usedViews.Remove(node.view);
+            UsedViews.Remove(node.View);
 
             return true;
         }
@@ -240,118 +255,161 @@ namespace Becerra.MVP.Pools
         /// </summary>
         public void Clean()
         {
-            for (int i = 0; i < _nodes.Count; i++)
+            for (int i = 0; i < Nodes.Count; i++)
             {
-                _nodes[i].view.Clean();
-                GameObject.Destroy(_nodes[i].view.SceneObject);
+                Nodes[i].View.Clean();
+                GameObject.Destroy(Nodes[i].View.SceneObject);
             }
 
-            _nodes.Clear();
-            _usedViews.Clear();
+            Nodes.Clear();
+            UsedViews.Clear();
         }
 
+        /// <summary>
+        /// Searchs for the first non already used view.
+        /// </summary>
+        /// <returns></returns>
         private Node FindAvailableView()
         {
-            for (int i = 0; i < _nodes.Count; i++)
+            foreach (var node in Nodes)
             {
-                if (_nodes[i].isUsed == false) return _nodes[i];
+                if (node.IsUsed == false) return node;
             }
 
             return null;
         }
 
+        /// <summary>
+        /// Finds a node associated with the given model.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         private Node FindNode(T model)
         {
-            for (int i = 0; i < _nodes.Count; i++)
+            foreach (var node in Nodes)
             {
-                if (_nodes[i].isUsed)
+                if (node.IsUsed)
                 {
-                    if (_nodes[i].view.Model == model) return _nodes[i];
+                    if (node.View.Model == model) return node;
                 }
             }
 
             return null;
         }
 
+        /// <summary>
+        /// Finds a node associated with the given model.
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         private Node FindNode(IModel model)
         {
-            for (int i = 0; i < _nodes.Count; i++)
+            foreach (var node in Nodes)
             {
-                if (_nodes[i].isUsed)
+                if (node.IsUsed)
                 {
-                    if (_nodes[i].view.Model == model) return _nodes[i];
+                    if (node.View.Model == model) return node;
                 }
             }
 
             return null;
         }
 
+        /// <summary>
+        /// Finds a node using the given view.
+        /// </summary>
+        /// <param name="view"></param>
+        /// <returns></returns>
         private Node FindNode(IUpdatableView view)
         {
-            for (int i = 0; i < _nodes.Count; i++)
+            foreach (var node in Nodes)
             {
-                if (_nodes[i].isUsed)
+                if (node.IsUsed)
                 {
-                    if (_nodes[i].view as IUpdatableView == view) return _nodes[i];
+                    if (node.View as IUpdatableView == view) return node;
                 }
             }
 
             return null;
         }
 
+        /// <summary>
+        /// Finds a node using the given view.
+        /// </summary>
+        /// <param name="view"></param>
+        /// <returns></returns>
         private Node FindNode(IUpdatableView<T> view)
         {
-            for (int i = 0; i < _nodes.Count; i++)
+            foreach (var node in Nodes)
             {
-                if (_nodes[i].isUsed)
+                if (node.IsUsed)
                 {
-                    if (_nodes[i].view as IUpdatableView == view) return _nodes[i];
+                    if (node.View as IUpdatableView == view) return node;
                 }
             }
 
             return null;
         }
 
+        /// <summary>
+        /// Finds a node using the given view.
+        /// </summary>
+        /// <param name="view"></param>
+        /// <returns></returns>
         private Node FindNode(View<T> view)
         {
-            for (int i = 0; i < _nodes.Count; i++)
+            foreach (var node in Nodes)
             {
-                if (_nodes[i].isUsed)
+                if (node.IsUsed)
                 {
-                    if (_nodes[i].view == view) return _nodes[i];
+                    if (node.View == view) return node;
                 }
             }
 
             return null;
         }
 
+        /// <summary>
+        /// Finds a node associated with a model with the given id.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         private Node FindNode(string id)
         {
-            for (int i = 0; i < _nodes.Count; i++)
+            foreach (var node in Nodes)
             {
-                if (_nodes[i].isUsed == false) continue;
+                if (node.IsUsed == false) continue;
 
-                if (_nodes[i].view.BaseModel.Id == id) return _nodes[i];
+                if (node.View.BaseModel.Id == id) return node;
             }
 
             return null;
         }
 
-        private Node Expand(View<T> prefab)
+        /// <summary>
+        /// Creates a new view at the end of the pool.
+        /// This is called automatically if there is not view available when providing one.
+        /// Override this method if you want to create the objects in another way (like using Zenject pools/factories)
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <returns></returns>
+        protected virtual Node Expand(View<T> prefab)
         {
-            var view = GameObject.Instantiate<View<T>>(prefab, Container);
+            var view = GameObject.Instantiate(prefab, Container);
 
+            view.SourcePool = this;
             view.gameObject.SetActive(false);
             view.transform.SetParent(Container);
 
-            Node node;
+            var node = new Node
+            {
+                View = view,
+                IsUsed = false
+            };
 
-            node = new Node();
-            node.view = view;
-            node.isUsed = false;
-            node.view.name = "--- [ View for " + typeof(T) + " ]";
+            node.View.name = "--- [ View for " + typeof(T) + " ]";
 
-            _nodes.Add(node);
+            Nodes.Add(node);
 
             return node;
         }
@@ -360,12 +418,12 @@ namespace Becerra.MVP.Pools
 
         public IEnumerator<IUpdatableView<T>> GetEnumerator()
         {
-            return _usedViews.GetEnumerator();
+            return UsedViews.GetEnumerator();
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return _usedViews.GetEnumerator();
+            return UsedViews.GetEnumerator();
         }
 
         #endregion
