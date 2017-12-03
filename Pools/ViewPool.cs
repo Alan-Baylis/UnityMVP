@@ -4,6 +4,11 @@ using UnityEngine;
 
 namespace Becerra.MVP.Pools
 {
+    /// <summary>
+    /// Specialliced pool for views.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="TR"></typeparam>
     public class ViewPool<T, TR> : Pool<TR>, IViewPool<T, TR> where T : class, IModel where TR: View<T>
     {
         public IUpdatableView BaseViewPrefab { get; private set; }
@@ -16,11 +21,13 @@ namespace Becerra.MVP.Pools
             ViewPrefab = prefab.GetComponent<View<T>>();
         }
 
+        /// <inheritdoc />
         public IUpdatableView Provide(IModel model)
         {
             return Provide(model as T);
         }
 
+        /// <inheritdoc />
         public View<T> Provide(T model)
         {
             var obj = Provide();
@@ -32,26 +39,31 @@ namespace Becerra.MVP.Pools
             return view;
         }
 
+        /// <inheritdoc />
         public bool Free(IUpdatableView<T> view)
         {
             return base.Free(view as TR);
         }
 
+        /// <inheritdoc />
         public bool Free(T model)
         {
             return Free(model.Id);
         }
 
+        /// <inheritdoc />
         public bool Free(IUpdatableView view)
         {
             return Free(view as TR);
         }
 
+        /// <inheritdoc />
         public bool Free(IModel model)
         {
             return Free(model as T);
         }
 
+        /// <inheritdoc />
         public bool Free(string id)
         {
             var view = Find(id);
@@ -61,6 +73,7 @@ namespace Becerra.MVP.Pools
             return base.Free(view as TR);
         }
 
+        /// <inheritdoc />
         public IUpdatableView Find(string id)
         {
             foreach (var view in this)
@@ -71,11 +84,13 @@ namespace Becerra.MVP.Pools
             return null;
         }
 
+        /// <inheritdoc />
         public IUpdatableView Find(IModel model)
         {
             return Find(model.Id);
         }
 
+        /// <inheritdoc />
         public View<T> Find(T model)
         {
             return Find(model.Id) as View<T>;
