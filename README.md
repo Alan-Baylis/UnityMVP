@@ -16,7 +16,7 @@ The Unity project containing this code is not included (nor the folder structure
 
 ### Model 
 
-Represents a chunk of data with no logic. A unique identifier is required to distinguish it from other chunks of data of the same type.
+Represents a chunk of data with no logic. A unique identifier is required to distinguish it from other chunks of data.
 
 Example:
 
@@ -66,14 +66,13 @@ Example:
 public class FooComponent : MonoBehaviour
 {
     public AnimalView animalPrefab;
+    public Transform animalsContainer;
 
     private void Awake()
     {
         var cat = new Animal("KeyboardCat");
 
-        var pool = new SimplePool<AnimalView>();
-
-        pool.Initialize(animalPrefab, 0);
+        var pool = new SimplePool<Animal, AnimalView>(animalPrefab, 0, animalsContainer);
 
         var catView = pool.Provide(cat);
     }
@@ -92,19 +91,21 @@ Example:
 
 public class AnimalController
 {
-    private SimplePool<AnimalView> _animalViews;
+    private SimplePool<Animal, AnimalView> _pool;
 
-    public void Initialize(SimplePool<AnimalView> pool)
+    public AnimalController(SimplePool<Animal, AnimalView> pool)
     {
-        _animalViews = pool;
+        _pool = pool;
     }
 
     public void Rename(Animal model, string name)
     {
-        var animalView = _animalViews.Find(model);
-
         model.Id = name;
 
+        var animalView = _pool.Find(model);
+
+        if (animalView == null) return;
+        
         animalView.Refresh(model);
     }
 }
@@ -119,64 +120,19 @@ public class AnimalController
 4. When using the `IModel` method, if the view does not update, it maybe because the casting from `IModel` to `T` failed. Make sure you are passing a model of the right type.
 5. Finding or freeing a view from a pool can be done using the model passed in the template, an `IModel` or even an id.
 6. You can iterate over all **used** views in a pool with `foreach (var view in pool)`. Non used views are ignored during the iteration.
-7. Remember to free views from the pool when you are no longer using them. They will be reused the next time you ask for a view, saving you from evil `Instatite` operations.
-8. When a pool has no more available views to provide, it will instantiate a new one. If you have an estimation on how much views you will need, initialize the pool as `pool.Initialize(prefab, estimatedNumberOfViews)` and that amount of views will be created when initializing the pool.
+7. Remember to free views calling the `Dispose` method of the view when you are no longer using them. That will return the view to the poll so it can be reused the next time you ask for a view, saving you from evil `Instatite` operations.
+8. When a pool has no more available views to provide, it will instantiate a new one. If you have an estimation on how much views you will need you can pass an initial amount in the pool constructor. This will increase the initial construction time, but can save you performance spikes afterward.
 
-## Best Friends with Zenject
+## Upcoming
 
-You can speedup your development even more using UnityMVP in conjunction with the awesome injection framework [Zenject](https://github.com/modesttree/Zenject). I like to inject my global pools and initialize them at the start of my game, wich makes super easy to access them later on to create, update or free game elements in a super easy and fast way.
+UnityMVP is a work in progress, and it's being developed using the feedback I get from users who are using it in their projects. The following features are being planned to be added to future releases of UnityMVP with no specific date set:
 
-Example:
+* Generic `GameObject` pool. Useful to pool simpler objects with no monobehaviours in them, like particles effects or 3D positioned sound sources.
 
-Setup the injection.
+## Changelog
 
-```c#
-using Zenject;
+### 2.0.0
 
-public class DIPoolsInstaller : MonoInstaller
-{
-    public override void InstallBindings()
-    {
-        Container.Bind<IPool<AnimalView>>().To<SimplePool<AnimalView>().AsSingle();
-    }
-}
+Now there are two types of pools: `Pool` which is a generic one to use with any monobehaviour, and `ViewPool` to use with views. Also, the underlying interfaces have been restructured to allow implementing custom pools by the user (useful to create custom view pools that internally use Zenject pools, for example).
 
-```
-
-At the start of the scene, initialize the pools.
-
-```c#
-
-public class InitializePools : MonoBehaviour
-{
-    public Transform animalsContainer;
-    public AnimalView animalPrefab;
-
-    [Inject] IPool<AnimalView> _animalsPool;
-
-    [Inject]
-    private void Initialize()
-    {
-        _animalsPool.Container = animalsContainer;
-        _animalsPool.Initialize(animalPrefab, 10); // 10 initials animals
-    }
-}
-
-```
-
-Somwhere in your code
-
-```c#
-
-public class SomeClass
-{
-    [Inject] IPool<AnimalView> _animalsPool;
-
-    public void Foo()
-    {
-        var cat = new Animal("KeyboardCat");
-        var catView = _animalsPool.Provide(cat);
-    }
-}
-
-```
+`ViewPools` now require to specify the model type and the view type used. This allows to better differenciate inherited types and inherited views when using generic pools.
